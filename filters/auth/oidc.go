@@ -763,6 +763,12 @@ func (f *tokenOidcFilter) tokenClaims(ctx filters.FilterContext, oauth2Token *oa
 		return nil, "", requestErrorf("claims do not contain sub")
 	}
 
+	exp, ok := tokenMap["exp"].(float64)
+	if ok {
+		f.validity = time.Until(time.Unix(int64(exp), 0))
+		log.Debugf("Setting validity of oidc filter to %s", f.validity)
+	}
+
 	return tokenMap, sub, nil
 }
 

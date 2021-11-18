@@ -224,7 +224,7 @@ func createOIDCServer(cb, client, clientsecret string) *httptest.Server {
 					"sub":   testSub,
 					"aud":   validClient,
 					"iat":   time.Now().Add(-time.Minute).UTC().Unix(),
-					"exp":   time.Now().Add(time.Hour).UTC().Unix(),
+					"exp":   time.Now().Add(2 * time.Hour).UTC().Unix(),
 					"groups": []string{
 						"CD-Administrators",
 						"Purchasing-Department",
@@ -825,6 +825,12 @@ func TestOIDCSetup(t *testing.T) {
 			}
 			bs := string(b)
 			t.Logf("Got body: %s", bs)
+
+			// make sure cookies have correct maxAge according to exp
+			for _, c := range client.Jar.Cookies(reqURL) {
+				maxAge := time.Duration(c.MaxAge * int(time.Second)).Round(time.Hour)
+				assert.Equal(t, 2*time.Hour, maxAge)
+			}
 		})
 	}
 }
